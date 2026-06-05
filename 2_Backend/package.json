@@ -1,0 +1,18 @@
+{
+  "name": "weather-backend",
+  "version": "1.0.0",
+  "description": "Express server with SQLite database for weather tracking",
+  "main": "Backend.js",
+  "scripts": {
+    "start": "node Backend.js",
+    "dev": "nodemon Backend.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
