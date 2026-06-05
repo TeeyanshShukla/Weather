@@ -253,10 +253,43 @@ function App() {
           setLoadingWeather(false);
         }
       },
-      (err) => {
-        console.error(err);
-        setWeatherError('Failed to access location: ' + err.message);
-        setLoadingWeather(false);
+      async (err) => {
+        console.warn('Browser Geolocation failed, attempting IP Geolocation fallback:', err.message);
+        try {
+          const ipRes = await fetch('https://ipapi.co/json/');
+          if (!ipRes.ok) throw new Error('IP Geolocation service request failed');
+          const ipData = await ipRes.json();
+          
+          if (ipData.latitude && ipData.longitude) {
+            const locName = ipData.city 
+              ? `${ipData.city}, ${ipData.region || ipData.country_name}`
+              : `IP Coordinates (${ipData.latitude.toFixed(4)}, ${ipData.longitude.toFixed(4)})`;
+
+            setResolvedLocation({
+              name: locName,
+              latitude: ipData.latitude,
+              longitude: ipData.longitude,
+              country: ipData.country_name || 'IP Geolocation'
+            });
+
+            const res = await fetch(
+              `${BACKEND_URL}/weather/forecast?lat=${ipData.latitude}&lon=${ipData.longitude}&name=${encodeURIComponent(locName)}`
+            );
+            if (!res.ok) {
+              throw new Error('Failed to retrieve weather forecast for IP coordinates');
+            }
+            const details = await res.json();
+            setWeatherData(details);
+            setWeatherError(null);
+          } else {
+            throw new Error(ipData.reason || 'Could not resolve IP coordinates');
+          }
+        } catch (fallbackErr) {
+          console.error(fallbackErr);
+          setWeatherError(`Failed to access location: ${err.message} (IP fallback also failed: ${fallbackErr.message})`);
+        } finally {
+          setLoadingWeather(false);
+        }
       }
     );
   };
