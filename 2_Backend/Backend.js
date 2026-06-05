@@ -1,7 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+
+let sqlite3;
+try {
+  sqlite3 = require('sqlite3').verbose();
+} catch (e) {
+  console.warn("sqlite3 module not available, using in-memory database fallback:", e.message);
+}
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -10,16 +16,105 @@ const PORT = process.env.PORT || 5001;
 app.use(cors());
 app.use(express.json());
 
-// SQLite Database Setup
-const dbPath = path.join(__dirname, 'weather_history.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Error opening SQLite database:', err.message);
-  } else {
-    console.log('Connected to SQLite database at:', dbPath);
-    createTable();
+// Simple in-memory fallback database
+const memoryDb = {
+  records: [],
+  nextId: 1,
+  run(query, params, callback) {
+    setTimeout(() => {
+      try {
+        if (query.includes('INSERT INTO')) {
+          const [location, resolved_location, latitude, longitude, start_date, end_date, weather_data, notes] = params;
+          const newRecord = {
+            id: this.nextId++,
+            location,
+            resolved_location,
+            latitude,
+            longitude,
+            start_date,
+            end_date,
+            weather_data,
+            notes,
+            created_at: new Date().toISOString()
+          };
+          this.records.push(newRecord);
+          if (callback) callback.call({ lastID: newRecord.id, changes: 1 }, null);
+        } else if (query.includes('UPDATE')) {
+          const [location, resolved_location, latitude, longitude, start_date, end_date, weather_data, notes, id] = params;
+          const idx = this.records.findIndex(r => r.id === parseInt(id));
+          if (idx !== -1) {
+            this.records[idx] = {
+              ...this.records[idx],
+              location,
+              resolved_location,
+              latitude,
+              longitude,
+              start_date,
+              end_date,
+              weather_data,
+              notes
+            };
+            if (callback) callback.call({ changes: 1 }, null);
+          } else {
+            if (callback) callback.call({ changes: 0 }, null);
+          }
+        } else if (query.includes('DELETE FROM')) {
+          const [id] = params;
+          const lenBefore = this.records.length;
+          this.records = this.records.filter(r => r.id !== parseInt(id));
+          const changes = lenBefore - this.records.length;
+          if (callback) callback.call({ changes }, null);
+        } else {
+          if (callback) callback(null);
+        }
+      } catch (err) {
+        if (callback) callback(err);
+      }
+    }, 0);
+  },
+  get(query, params, callback) {
+    setTimeout(() => {
+      try {
+        const [resolved_location, start_date, end_date] = params;
+        const found = this.records.find(r => 
+          r.resolved_location === resolved_location && 
+          r.start_date === start_date && 
+          r.end_date === end_date
+        );
+        callback(null, found ? found : null);
+      } catch (err) {
+        callback(err, null);
+      }
+    }, 0);
+  },
+  all(query, params, callback) {
+    setTimeout(() => {
+      // Sort by created_at DESC
+      const sorted = [...this.records].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      callback(null, sorted);
+    }, 0);
   }
-});
+};
+
+let db;
+if (sqlite3) {
+  // Use /tmp in production (writable), otherwise local path
+  const dbPath = process.env.NODE_ENV === 'production' 
+    ? '/tmp/weather_history.db'
+    : path.join(__dirname, 'weather_history.db');
+
+  db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+      console.error('Error opening SQLite database, falling back to in-memory:', err.message);
+      db = memoryDb;
+    } else {
+      console.log('Connected to SQLite database at:', dbPath);
+      createTable();
+    }
+  });
+} else {
+  db = memoryDb;
+}
 
 function createTable() {
   const query = `
@@ -640,7 +735,11 @@ app.get('/api/history/export', (req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Weather app backend running on http://localhost:${PORT}`);
-});
+// Start server only when running directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Weather app backend running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

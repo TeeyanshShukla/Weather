@@ -27,7 +27,9 @@ import {
 import './App.css';
 
 // Base API URL pointing to Node.js backend
-const BACKEND_URL = 'http://localhost:5001/api';
+const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5001/api'
+  : '/api';
 
 // Map WMO Weather Codes to human readable descriptions, themes, and icons
 const getWeatherDetails = (code) => {
