@@ -454,7 +454,7 @@ function App() {
           <div className="header-meta">
             <div>{currentDateTime}</div>
             <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '0.2rem' }}>
-              Candidate: <strong>Teeyansh Shukla</strong> (AI Engineer Intern Assessment)
+              Candidate: <strong>Teeyansh Shukla</strong> (AI Engineer Intern - Dual: Fullstack Engineering + Data Scientist)
             </div>
           </div>
         </header>
@@ -871,7 +871,7 @@ function App() {
               </div>
               <div className="candidate-detail">
                 <div className="candidate-label">Target Role</div>
-                <div className="candidate-val">AI Engineer Intern</div>
+                <div className="candidate-val">AI Engineer Intern (Dual: Fullstack Engineering + Data Scientist)</div>
               </div>
             </div>
           </div>

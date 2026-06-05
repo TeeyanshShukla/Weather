@@ -1,6 +1,6 @@
 # AeroWeather - Full-Stack Weather Portal & Forecasting Model
 **Applicant:** Teeyansh Shukla  
-**Target Role:** AI Engineer Intern (Product Manager Accelerator Technical Assessment)
+**Target Role:** AI Engineer Intern (Dual: Fullstack Engineering + Data Scientist) (Product Manager Accelerator Technical Assessment)
 
 ---
 
