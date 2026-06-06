@@ -25,6 +25,7 @@ import {
   WiDust
 } from 'react-icons/wi';
 import './App.css';
+import WeatherBackground from './components/WeatherBackground';
 
 // Base API URL pointing to Node.js backend
 const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -419,6 +420,11 @@ function App() {
   const weatherCode = weatherData?.weather?.current?.weather_code ?? 0;
   const { label: conditionLabel, theme: weatherTheme, icon: weatherIcon } = getWeatherDetails(weatherCode);
 
+  const currentHour = new Date().getHours();
+  const isDay = weatherData?.weather?.current?.is_day !== undefined 
+    ? weatherData.weather.current.is_day === 1 
+    : (currentHour >= 6 && currentHour < 18);
+
   // Format forecast days
   const formatForecastDays = (forecast) => {
     if (!forecast || !forecast.time) return [];
@@ -439,11 +445,10 @@ function App() {
   const forecastDays = formatForecastDays(weatherData?.weather?.daily);
 
   return (
-    <div 
-      className="app-container"
-      style={{ backgroundImage: `var(--bg-gradient-${weatherTheme})` }}
-    >
-      <div className="app-wrap">
+    <>
+      <WeatherBackground condition={weatherTheme} isDay={isDay} />
+      <div className="app-container">
+        <div className="app-wrap">
         
         {/* ================= HEADER ================= */}
         <header className="app-header glass-panel">
@@ -970,7 +975,8 @@ function App() {
         </div>
       )}
 
-    </div>
+      </div>
+    </>
   );
 }
 

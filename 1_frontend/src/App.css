@@ -72,13 +72,13 @@ body {
   min-height: 100vh;
   width: 100%;
   padding: 2rem;
-  background-attachment: fixed;
-  background-size: cover;
-  background-position: center;
   transition: var(--transition-smooth);
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
 }
 
 /* App Layout Wrap */
@@ -100,19 +100,20 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Glassmorphism Panel helper */
 .glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 1.5rem;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
   transition: var(--transition-smooth);
 }
 
 .glass-panel:hover {
-  background: var(--glass-bg-hover);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.45);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.4);
 }
 
 /* Header styling */
@@ -916,3 +917,292 @@ h1, h2, h3, h4, h5, h6 {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   WeatherBackground Component Styles
+   ========================================================================== */
+
+.weather-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  transition: background 1.5s ease-in-out;
+}
+
+.weather-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Sky Gradients based on weather condition & day/night */
+
+/* 1. Clear Sky */
+.clear-bg.day-bg {
+  background: linear-gradient(to bottom, #1c92d2, #f2fcfe);
+}
+.clear-bg.night-bg {
+  background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+}
+
+/* 2. Cloudy */
+.cloudy-bg.day-bg {
+  background: linear-gradient(to bottom, #396afc, #eef2f3);
+}
+.cloudy-bg.night-bg {
+  background: linear-gradient(to bottom, #111827, #1e293b, #334155);
+}
+
+/* 3. Rainy */
+.rain-bg.day-bg {
+  background: linear-gradient(to bottom, #3a6073, #3a7bd5);
+}
+.rain-bg.night-bg {
+  background: linear-gradient(to bottom, #0f172a, #1e293b);
+}
+
+/* 4. Stormy */
+.storm-bg {
+  background: linear-gradient(to bottom, #0f0c20, #15102a, #2b1055);
+}
+
+/* 5. Snowy */
+.snow-bg.day-bg {
+  background: linear-gradient(to bottom, #83a4d4, #b6fbff);
+}
+.snow-bg.night-bg {
+  background: linear-gradient(to bottom, #1a2a6c, #2758b0);
+}
+
+/* Sun Animation (Sunny Day) */
+.sun-container {
+  position: absolute;
+  top: 10%;
+  right: 15%;
+  width: 300px;
+  height: 300px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.sun-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, #fff7e6 30%, #ffd000 80%, #ff8c00 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 80px 30px rgba(255, 215, 0, 0.7);
+}
+
+.sun-rays {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 10%, transparent 70%);
+  animation: spinRay 120s linear infinite;
+}
+
+.sun-rays::before, .sun-rays::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 340px;
+  height: 340px;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 235, 120, 0.05) 0deg 15deg,
+    transparent 15deg 30deg
+  );
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.sun-rays::after {
+  transform: translate(-50%, -50%) rotate(45deg);
+  opacity: 0.6;
+}
+
+/* Moon Animation (Clear Night) */
+.moon-container {
+  position: absolute;
+  top: 12%;
+  right: 18%;
+  width: 180px;
+  height: 180px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.moon-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70px;
+  height: 70px;
+  background: #f4f6f9;
+  border-radius: 50%;
+  box-shadow: 0 0 40px 10px rgba(240, 245, 255, 0.5);
+  overflow: hidden;
+}
+
+/* Create crescent shadow overlay if desired, or simple soft moon craters */
+.moon-shadow {
+  position: absolute;
+  top: -10px;
+  left: -20px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  box-shadow: 15px 15px 0 0 rgba(0, 0, 0, 0.08) inset;
+}
+
+.moon-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, rgba(230, 240, 255, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulseGlow 8s ease-in-out infinite;
+}
+
+/* Clouds Layering */
+.clouds-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.cloud-layer {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(55px);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.day-bg .cloud-layer {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.night-bg .cloud-layer {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.rain-bg.day-bg .cloud-layer, .storm-bg .cloud-layer {
+  background: rgba(0, 0, 0, 0.35);
+  filter: blur(70px);
+  mix-blend-mode: multiply;
+}
+
+.rain-bg.night-bg .cloud-layer {
+  background: rgba(0, 0, 0, 0.45);
+  filter: blur(80px);
+  mix-blend-mode: multiply;
+}
+
+.cloud-layer-1 {
+  width: 550px;
+  height: 250px;
+  top: -60px;
+  left: -100px;
+  animation: driftCloud1 140s linear infinite;
+}
+
+.cloud-layer-2 {
+  width: 750px;
+  height: 300px;
+  top: 5%;
+  left: -150px;
+  animation: driftCloud2 200s linear infinite;
+}
+
+.cloud-layer-3 {
+  width: 450px;
+  height: 180px;
+  top: 15%;
+  left: -200px;
+  animation: driftCloud3 100s linear infinite;
+}
+
+/* Lightning Flash Overlay */
+.lightning-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(240, 245, 255, 0.95);
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: color-dodge;
+  transition: opacity 0.05s ease-out;
+}
+
+.lightning-overlay.flash {
+  opacity: 1;
+}
+
+/* Ambient Thundercloud flash for storm container */
+.lightning-flash-active .cloud-layer {
+  background: rgba(235, 240, 255, 0.6) !important;
+  filter: blur(45px);
+  transition: background 0.05s ease-out;
+  mix-blend-mode: screen !important;
+}
+
+/* Keyframe Animations */
+@keyframes spinRay {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+
+@keyframes driftCloud1 {
+  0% { transform: translateX(-550px); }
+  100% { transform: translateX(calc(100vw + 550px)); }
+}
+
+@keyframes driftCloud2 {
+  0% { transform: translateX(-750px); }
+  100% { transform: translateX(calc(100vw + 750px)); }
+}
+
+@keyframes driftCloud3 {
+  0% { transform: translateX(-450px); }
+  100% { transform: translateX(calc(100vw + 450px)); }
+}
+
